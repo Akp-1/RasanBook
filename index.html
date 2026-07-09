@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RasanBook</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+html,body{height:100%;}
+body{background:#F6F7FB;display:flex;justify-content:center;align-items:center;overflow:hidden;}
+
+.phone{
+  width:100%;
+  max-width:430px;
+  height:100vh;
+  height:100dvh;
+  max-height:900px;
+  background:white;
+  overflow:hidden;
+  box-shadow:0 15px 40px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+}
+@media (min-width:480px){
+  body{ padding:20px; }
+  .phone{ border-radius:30px; height:calc(100vh - 40px); height:calc(100dvh - 40px); max-height:860px; }
+}
+
+.view{display:none;}
+.view.active{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ---- Headers ---- */
+.header{padding:24px;color:white;}
+.header h1{font-size:24px;font-weight:700;}
+.header p{margin-top:6px;opacity:.9;font-size:14px;}
+.header-dash{background:linear-gradient(135deg,#110245,#9b81d7);}
+.header-purchase{background:linear-gradient(135deg,#6C3EF4,#512DA8);}
+.header-inv{padding:22px 20px;border-bottom:1px solid #F1F1F5;color:#111;}
+.header-left{font-size:18px;font-weight:700;color:#111;}
+.header-sub{font-size:13px;color:#6B7280;margin-top:4px;}
+
+.container{padding:20px;}
+
+/* ---- Hero card (Dashboard) ---- */
+.hero-card{background:linear-gradient(160deg,#F3EEFF,#FFFFFF);border-radius:22px;padding:22px;margin-bottom:18px;box-shadow:0 10px 30px rgba(110,97,255,.1);}
+.hero-month-nav{display:flex;align-items:center;justify-content:space-between;}
+.hero-month-label{font-size:15px;font-weight:700;color:#512DA8;}
+.month-arrow{width:34px;height:34px;border-radius:12px;border:none;background:#fff;color:#6C3EF4;font-size:18px;cursor:pointer;font-weight:700;}
+.month-arrow:hover{background:#E7DBFF;}
+.hero-remaining-label{margin-top:16px;font-size:13px;color:#666;}
+.hero-remaining-value{font-size:42px;font-weight:800;line-height:1.2;color:#1B5E20;}
+.hero-remaining-value.due{color:#BF360C;}
+.field-hint{font-size:12px;color:#8A8FA3;margin-top:6px;}
+.hero-divider{height:1px;background:#E7E1FA;margin:18px 0;}
+.hero-sub-row{display:flex;justify-content:space-between;}
+.hero-sub-item span{display:block;font-size:12px;color:#666;margin-bottom:4px;}
+.hero-sub-item strong{font-size:19px;color:#1A1A1A;}
+
+/* ---- Month nav row (Purchase page) ---- */
+.month-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;}
+.month-nav-row .section-title{margin-bottom:0;text-align:center;flex:1;}
+
+/* ---- Buttons ---- */
+.btn{width:100%;padding:16px;border:none;border-radius:16px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:15px;transition:.25s;}
+.primary{background:#6C3EF4;color:white;}
+.primary:hover{background:#5A34D7;}
+.secondary{background:white;border:2px solid #D9CCFF;color:#6C3EF4;}
+.secondary:hover{background:#F5F2FF;}
+
+/* ---- Cards (generic) ---- */
+.section-title{font-size:18px;font-weight:700;color:#1A1A1A;}
+.card{background:#F9F9FC;padding:18px;border-radius:22px;margin-bottom:16px;}
+.draft-card{border:2px solid #E7DBFF;background:#FCFBFF;}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px;}
+.card-header h2{font-size:16px;font-weight:700;color:#1A1A1A;}
+.card-header span{font-size:13px;color:#666;}
+.card-header-actions{display:flex;gap:8px;flex-shrink:0;}
+.item-list{margin-top:8px;}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ECEAF4;}
+.item:last-child{border-bottom:none;}
+.item-name{font-size:15px;color:#222;}
+.item-qty{font-size:14px;color:#666;}
+.action-btn{padding:8px 12px;border-radius:14px;border:1px solid #D9CCFF;background:#fff;color:#6C3EF4;font-size:13px;cursor:pointer;}
+.action-btn.delete{border-color:#F4C7C7;color:#C62828;}
+.empty-note{color:#666;font-size:15px;padding:6px 0 10px;}
+
+.purchase-stats-row{display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #F1F1F5;text-align:center;}
+.purchase-stats-row div{flex:1;}
+.purchase-stats-row span{display:block;font-size:12px;color:#666;margin-bottom:4px;}
+.purchase-stats-row strong{font-size:15px;color:#1A1A1A;}
+.purchase-stats-row strong.due{color:#BF360C;}
+.purchase-stats-row strong.clear{color:#1B5E20;}
+
+/* ---- Modals ---- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:10;}
+.modal-overlay.active{display:flex;}
+.modal{width:100%;max-width:380px;background:white;border-radius:24px;padding:24px;box-shadow:0 25px 60px rgba(0,0,0,.2);max-height:88vh;overflow:auto;}
+.modal h2{margin-bottom:18px;font-size:22px;color:#1A1A1A;}
+.modal label{display:block;margin-top:14px;margin-bottom:8px;font-size:14px;color:#444;font-weight:600;}
+.modal input,.modal select{width:100%;padding:14px 16px;border:1px solid #E7E7EA;border-radius:16px;font-size:16px;color:#111;background:#fff;}
+.modal-actions{display:flex;gap:12px;margin-top:24px;}
+.modal-actions .btn{flex:1;margin-bottom:0;}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #F1F1F5;font-size:15px;color:#222;}
+.history-item:last-child{border-bottom:none;}
+
+/* ---- Toast (replaces alert()) ---- */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1A1A;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.25);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ---- Purchase cart entry (stacked layout for narrow phone width) ---- */
+.cart-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+.cart-row{background:#fff;border:1px solid #ECEAF4;border-radius:16px;padding:12px;}
+.cart-row .cart-name{width:100%;padding:10px 12px;border:1px solid #E7E7EA;border-radius:12px;font-size:14px;color:#111;margin-bottom:8px;}
+.cart-row-details{display:flex;gap:6px;align-items:center;}
+.cart-row-details .cart-qty{flex:1 1 0;min-width:0;padding:9px 6px;border:1px solid #E7E7EA;border-radius:10px;font-size:13px;text-align:center;}
+.cart-row-details .cart-unit{flex:1 1 0;min-width:0;padding:9px 4px;border:1px solid #E7E7EA;border-radius:10px;font-size:12px;}
+.cart-row-details .cart-price{flex:1.3 1 0;min-width:0;padding:9px 6px;border:1px solid #E7E7EA;border-radius:10px;font-size:13px;text-align:center;}
+.cart-remove{width:32px;height:32px;border-radius:10px;border:1px solid #F4C7C7;background:#fff;color:#C62828;font-size:15px;cursor:pointer;flex-shrink:0;}
+.cart-add-row{margin-top:10px;padding:12px;border-radius:14px;border:1px dashed #D9CCFF;background:#F9F7FF;color:#6C3EF4;font-weight:600;font-size:14px;cursor:pointer;width:100%;}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid #F1F1F5;}
+.cart-total-row .label-col{font-size:14px;color:#444;font-weight:600;}
+.cart-total-row .auto-sum{font-size:12px;color:#666;margin-top:4px;font-weight:400;}
+.cart-total-row .value{font-size:22px;font-weight:800;color:#512DA8;}
+
+/* ---- Bottom nav ---- */
+.bottom-nav{display:flex;gap:8px;padding:16px 16px;background:#fff;border-top:1px solid #F1F1F5;flex-shrink:0;}
+.nav-btn{flex:1;padding:12px 2px;border-radius:14px;border:1px solid #D9CCFF;background:#fff;color:#6C3EF4;font-weight:700;cursor:pointer;font-size:12px;}
+.nav-btn.active{background:#6C3EF4;color:#fff;border-color:#6C3EF4;}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="view-dashboard" class="view active">
+    <div class="header header-dash">
+      <h1>RasanBook</h1>
+      <p>Monthly Payment Dashboard</p>
+    </div>
+    <div class="container">
+
+      <div class="hero-card">
+        <div class="hero-month-nav">
+          <button class="month-arrow" id="dashPrevMonth">‹</button>
+          <div class="hero-month-label" id="dashMonthLabel"></div>
+          <button class="month-arrow" id="dashNextMonth">›</button>
+        </div>
+        <div class="hero-remaining-label">Remaining</div>
+        <div class="hero-remaining-value" id="remaining">₹0</div>
+        <div class="field-hint" id="creditNote"></div>
+        <div class="field-hint" id="carryForwardNote"></div>
+        <div class="hero-divider"></div>
+        <div class="hero-sub-row">
+          <div class="hero-sub-item"><span>Bill</span><strong id="totalBillDisplay">₹0</strong></div>
+          <div class="hero-sub-item"><span>Paid</span><strong id="totalPaid">₹0</strong></div>
+        </div>
+      </div>
+
+      <button class="btn primary" id="addPaymentBtn">+ Add Payment</button>
+      <button class="btn secondary" id="openCurrentPurchaseBtn">Open Current Purchase</button>
+    </div>
+  </div>
+
+  <!-- ================= CURRENT PURCHASE ================= -->
+  <div id="view-purchase" class="view">
+    <div class="header header-purchase">
+      <h1>Current Purchase</h1>
+      <p>Build your list, then record what you bought</p>
+    </div>
+    <div class="container">
+      <div class="month-nav-row">
+        <button class="month-arrow" id="purchPrevMonth" style="background:#F3EEFF;">‹</button>
+        <div class="section-title" id="purchaseMonthLabel"></div>
+        <button class="month-arrow" id="purchNextMonth" style="background:#F3EEFF;">›</button>
+      </div>
+
+      <button class="action-btn" id="viewPaymentHistoryBtn" style="width:100%;margin-bottom:16px;">View Payment History</button>
+
+      <div class="card draft-card">
+        <div class="section-title" style="margin-bottom:12px;">Current Purchase</div>
+
+        <label>Merchant</label>
+        <select id="pMerchantSelect"></select>
+
+        <label>Date</label>
+        <input type="date" id="pDate">
+
+        <label style="margin-top:20px;">Items</label>
+        <div class="cart-list" id="cartRows"></div>
+        <button type="button" class="cart-add-row" id="cartAddRowBtn">+ Add another item</button>
+
+        <div class="cart-total-row">
+          <div class="label-col">Total Bill
+            <div class="auto-sum">Auto-calculated from items</div>
+          </div>
+          <div class="value" id="cartTotalDisplay">₹0</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <button class="btn secondary" id="shareListBtn" style="margin-bottom:0;">Share Grocery List</button>
+          <button class="btn primary" id="savePurchaseBtn" style="margin-bottom:0;">Save Purchase</button>
+        </div>
+        <button class="btn secondary" id="clearDraftBtn" style="margin-top:10px;margin-bottom:0;">Clear / Start New</button>
+      </div>
+
+      <div class="section-title" style="margin:22px 0 14px;">Recent Purchases</div>
+      <div id="historyContainer"></div>
+    </div>
+  </div>
+
+  <!-- ================= MERCHANTS ================= -->
+  <div id="view-merchants" class="view">
+    <div class="header-inv">
+      <div>
+        <div class="header-left">Merchants</div>
+        <div class="header-sub">Where groceries were bought</div>
+      </div>
+    </div>
+    <div class="container">
+      <button class="btn primary" id="addMerchantBtn">+ Add Merchant</button>
+      <div id="merchantsList"></div>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM NAV (shared) ================= -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+    <button class="nav-btn" data-view="purchase">Purchase</button>
+    <button class="nav-btn" data-view="merchants">Merchants</button>
+  </div>
+</div>
+
+<!-- ============ MODAL: Add Payment ============ -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <h2>Add Payment</h2>
+    <label>Merchant</label>
+    <select id="paymentMerchantSelect"></select>
+    <label>Amount</label>
+    <input type="number" id="paymentAmount" min="1">
+    <label>Date</label>
+    <input type="date" id="paymentDate">
+    <div class="modal-actions">
+      <button class="btn secondary" id="cancelPaymentBtn">Cancel</button>
+      <button class="btn primary" id="savePaymentBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Payment History ============ -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <h2>Payment History</h2>
+    <div id="paymentHistoryList"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="closeHistoryBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Share Grocery List ============ -->
+<div class="modal-overlay" id="sharePopup">
+  <div class="modal">
+    <h2>Share Grocery List</h2>
+    <button class="btn secondary" id="shareWhatsappOpt">WhatsApp</button>
+    <button class="btn secondary" id="shareImageOpt">Image</button>
+    <button class="btn secondary" id="shareCopyOpt">Copy Text</button>
+    <button class="btn secondary" id="shareCancelBtn">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ In-app dialogs (replace native prompt/confirm/alert) ============ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2 id="confirmModalTitle">Are you sure?</h2>
+    <div class="modal-actions">
+      <button class="btn secondary" id="confirmModalNo">Cancel</button>
+      <button class="btn primary" id="confirmModalYes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="textPromptModal">
+  <div class="modal">
+    <h2 id="textPromptTitle">Enter value</h2>
+    <input type="text" id="textPromptInput" placeholder="">
+    <div class="modal-actions">
+      <button class="btn secondary" id="textPromptCancel">Cancel</button>
+      <button class="btn primary" id="textPromptSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   DATA LAYER  (versioned schema)
+   { version, settings, merchants, months: { "YYYY-MM": { purchases:[], payments:[] } }, draft }
+   ========================================================= */
+const STORAGE_KEY = 'rasanbookData';
+let idCounter = 0;
+function genId(){ idCounter++; return Date.now()+'-'+idCounter+'-'+Math.random().toString(36).slice(2,6); }
+
+function migrateOldShape(old){
+  const fresh = { version:1, settings:{}, merchants: old.merchants || [], months:{}, draft:{ merchant:'', date:'', items: [] } };
+  if(Array.isArray(old.inventory) && old.inventory.length){
+    fresh.draft.items = old.inventory.map(i => ({ name:i.name||'', qty:i.qty||'', unit:i.unit||'kg', price:'' }));
+  }
+  const oldMonths = old.months || {};
+  Object.keys(oldMonths).forEach(k => {
+    const om = oldMonths[k];
+    fresh.months[k] = {
+      payments: (om.payments||[]).map(p => ({ amount: p.amount||0, date: p.date, merchant: p.merchant || '' })),
+      purchases: (om.purchases||[]).map(g => ({
+        id: genId(),
+        merchant: g.merchant || 'Store',
+        date: g.date,
+        items: (g.items||[]).map(it => ({ name:it.name, qty:it.qty, unit:it.unit, price: parseFloat(it.price)||0 })),
+        total: parseFloat(g.total)||0
+      }))
+    };
+  });
+  return fresh;
+}
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  let parsed = null;
+  if(raw){
+    try{ parsed = JSON.parse(raw); }catch(e){ console.error('Failed to parse stored data', e); }
+  }
+  if(!parsed) parsed = { version:1, settings:{}, merchants:[], months:{}, draft:{ merchant:'', date:'', items:[] } };
+  if(!parsed.version){ parsed = migrateOldShape(parsed); }
+  if(!parsed.settings) parsed.settings = {};
+  if(!parsed.merchants) parsed.merchants = [];
+  if(!parsed.months) parsed.months = {};
+  if(!parsed.draft) parsed.draft = { merchant:'', date:'', items:[] };
+  return parsed;
+}
+
+let data = loadData();
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function monthKey(date){ return `${date.getFullYear()}-${pad(date.getMonth()+1)}`; }
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return `${months[m-1]} ${y}`;
+}
+function shiftMonth(key, delta){
+  let [y,m] = key.split('-').map(Number);
+  m += delta;
+  while(m>12){ m-=12; y++; }
+  while(m<1){ m+=12; y--; }
+  return `${y}-${pad(m)}`;
+}
+function ensureMonth(key){
+  if(!data.months[key]) data.months[key] = { purchases:[], payments:[] };
+  return data.months[key];
+}
+function purchaseTotalSum(md){
+  return md.purchases.reduce((sum,g)=> sum + (parseFloat(g.total)||0), 0);
+}
+function paymentsSum(md){
+  return md.payments.reduce((sum,p)=> sum + (parseFloat(p.amount)||0), 0);
+}
+/* Paid amount for one purchase visit = payments this month attributed to the same merchant.
+   Note: if a merchant is visited more than once in the same month, both visits will show
+   the merchant's combined paid total (payments aren't split per visit). */
+function purchasePaidAmount(md, purchase){
+  return md.payments
+    .filter(p => (p.merchant||'').toLowerCase() === purchase.merchant.toLowerCase())
+    .reduce((s,p)=> s + (parseFloat(p.amount)||0), 0);
+}
+function getSortedMonthKeys(){ return Object.keys(data.months).sort(); }
+function computeAllBalances(){
+  const keys = getSortedMonthKeys();
+  let running = 0;
+  const opening = {}, closing = {};
+  keys.forEach(k => {
+    opening[k] = running;
+    const md = data.months[k];
+    const bill = purchaseTotalSum(md);
+    const paid = paymentsSum(md);
+    const c = running + bill - paid;
+    closing[k] = c;
+    running = c;
+  });
+  return { opening, closing };
+}
+function formatDate(dateString){
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { day:'2-digit', month:'short', year:'numeric' });
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function addMerchant(name){
+  if(!name) return;
+  if(!data.merchants.some(m => m.toLowerCase() === name.toLowerCase())){
+    data.merchants.push(name);
+    saveData();
+  }
+}
+
+/* =========================================================
+   IN-APP DIALOGS (replace native prompt/confirm/alert, which
+   can be blocked or unreliable inside sandboxed/mobile webviews)
+   ========================================================= */
+let toastTimer = null;
+function showToast(message){
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toast.classList.remove('show'), 2600);
+}
+
+const confirmModal = document.getElementById('confirmModal');
+let confirmCallback = null;
+function showConfirm(message, onYes){
+  document.getElementById('confirmModalTitle').textContent = message;
+  confirmCallback = onYes;
+  confirmModal.classList.add('active');
+}
+document.getElementById('confirmModalYes').addEventListener('click', ()=>{
+  confirmModal.classList.remove('active');
+  const cb = confirmCallback; confirmCallback = null;
+  if(cb) cb();
+});
+document.getElementById('confirmModalNo').addEventListener('click', ()=>{
+  confirmModal.classList.remove('active');
+  confirmCallback = null;
+});
+confirmModal.addEventListener('click', (e)=>{ if(e.target===confirmModal){ confirmModal.classList.remove('active'); confirmCallback=null; } });
+
+const textPromptModal = document.getElementById('textPromptModal');
+const textPromptInput = document.getElementById('textPromptInput');
+let promptCallback = null;
+function showTextPrompt(title, placeholder, onSubmit, initialValue){
+  document.getElementById('textPromptTitle').textContent = title;
+  textPromptInput.value = initialValue || '';
+  textPromptInput.placeholder = placeholder || '';
+  promptCallback = onSubmit;
+  textPromptModal.classList.add('active');
+  setTimeout(()=> textPromptInput.focus(), 60);
+}
+function submitTextPrompt(){
+  const val = textPromptInput.value.trim();
+  textPromptModal.classList.remove('active');
+  const cb = promptCallback; promptCallback = null;
+  if(cb) cb(val);
+}
+document.getElementById('textPromptSave').addEventListener('click', submitTextPrompt);
+document.getElementById('textPromptCancel').addEventListener('click', ()=>{
+  textPromptModal.classList.remove('active');
+  promptCallback = null;
+});
+textPromptInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submitTextPrompt(); });
+textPromptModal.addEventListener('click', (e)=>{ if(e.target===textPromptModal){ textPromptModal.classList.remove('active'); promptCallback=null; } });
+
+let viewMonth = monthKey(new Date());
+
+/* =========================================================
+   VIEW SWITCHING
+   ========================================================= */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchView(btn.dataset.view));
+});
+
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  if(name==='dashboard') renderDashboard();
+  if(name==='purchase'){ renderPurchaseHistory(); hydrateDraftToDOM(); }
+  if(name==='merchants') renderMerchants();
+}
+
+function shiftViewMonth(delta){
+  viewMonth = shiftMonth(viewMonth, delta);
+  renderDashboard();
+  renderPurchaseHistory();
+}
+
+/* =========================================================
+   DASHBOARD (read-only)
+   ========================================================= */
+const totalPaidEl = document.getElementById('totalPaid');
+const remainingEl = document.getElementById('remaining');
+
+function renderDashboard(){
+  const md = ensureMonth(viewMonth);
+  document.getElementById('dashMonthLabel').textContent = monthLabel(viewMonth);
+
+  const bill = purchaseTotalSum(md);
+  document.getElementById('totalBillDisplay').textContent = '₹' + Math.round(bill).toLocaleString();
+
+  const paid = paymentsSum(md);
+  totalPaidEl.textContent = '₹' + Math.round(paid).toLocaleString();
+
+  const { opening, closing } = computeAllBalances();
+  const openingBalance = opening[viewMonth] || 0;
+  const due = closing[viewMonth] || 0;
+
+  const carryNote = document.getElementById('carryForwardNote');
+  if(openingBalance > 0.5){
+    carryNote.textContent = `Includes ₹${Math.round(openingBalance).toLocaleString()} carried forward from last month`;
+  } else if(openingBalance < -0.5){
+    carryNote.textContent = `Includes ₹${Math.round(-openingBalance).toLocaleString()} credit carried forward from last month`;
+  } else {
+    carryNote.textContent = '';
+  }
+
+  if(due >= 0.5){
+    remainingEl.textContent = '₹' + Math.round(due).toLocaleString();
+    remainingEl.classList.add('due');
+    document.getElementById('creditNote').textContent = '';
+  } else if(due < -0.5){
+    remainingEl.textContent = '₹0';
+    remainingEl.classList.remove('due');
+    document.getElementById('creditNote').textContent = `You have ₹${Math.round(-due).toLocaleString()} credit for next month`;
+  } else {
+    remainingEl.textContent = '₹0';
+    remainingEl.classList.remove('due');
+    document.getElementById('creditNote').textContent = '';
+  }
+}
+
+document.getElementById('dashPrevMonth').addEventListener('click', ()=> shiftViewMonth(-1));
+document.getElementById('dashNextMonth').addEventListener('click', ()=> shiftViewMonth(1));
+document.getElementById('purchPrevMonth').addEventListener('click', ()=> shiftViewMonth(-1));
+document.getElementById('purchNextMonth').addEventListener('click', ()=> shiftViewMonth(1));
+document.getElementById('openCurrentPurchaseBtn').addEventListener('click', ()=> switchView('purchase'));
+
+/* ---- Merchant <select> population ---- */
+function populateMerchantSelect(selectEl, selected){
+  const options = data.merchants.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  selectEl.innerHTML = options + `<option value="__new__">+ Add New Merchant</option>`;
+  if(selected && data.merchants.some(m=>m===selected)){
+    selectEl.value = selected;
+  } else if(data.merchants.length){
+    selectEl.value = data.merchants[0];
+  }
+}
+
+/* ---- Add Payment modal ---- */
+const paymentModal = document.getElementById('paymentModal');
+const paymentAmount = document.getElementById('paymentAmount');
+const paymentDate = document.getElementById('paymentDate');
+const paymentMerchantSelect = document.getElementById('paymentMerchantSelect');
+
+document.getElementById('addPaymentBtn').addEventListener('click', ()=>{
+  if(!data.merchants.length){
+    showToast('Please add a merchant first, from the Merchants tab.');
+    return;
+  }
+  paymentAmount.value = '';
+  paymentDate.value = (viewMonth === monthKey(new Date()))
+    ? new Date().toISOString().slice(0,10)
+    : viewMonth + '-01';
+  populateMerchantSelect(paymentMerchantSelect, data.merchants[0]);
+  paymentModal.classList.add('active');
+});
+
+paymentMerchantSelect.addEventListener('change', ()=>{
+  if(paymentMerchantSelect.value === '__new__'){
+    populateMerchantSelect(paymentMerchantSelect, data.merchants[0] || '');
+    showTextPrompt('New Merchant', 'e.g. Sharma Kirana', (name)=>{
+      if(name){
+        addMerchant(name);
+        populateMerchantSelect(paymentMerchantSelect, name);
+      }
+    });
+  }
+});
+
+document.getElementById('cancelPaymentBtn').addEventListener('click', ()=> paymentModal.classList.remove('active'));
+paymentModal.addEventListener('click', (e)=>{ if(e.target===paymentModal) paymentModal.classList.remove('active'); });
+
+document.getElementById('savePaymentBtn').addEventListener('click', ()=>{
+  const merchant = paymentMerchantSelect.value;
+  if(!merchant || merchant === '__new__'){ showToast('Please select a merchant.'); return; }
+  const amount = parseFloat(paymentAmount.value);
+  if(isNaN(amount) || amount<=0){ showToast('Please enter a valid payment amount.'); return; }
+  const dateVal = paymentDate.value;
+  const dateObj = new Date(dateVal);
+  if(isNaN(dateObj.getTime())){ showToast('Please select a valid payment date.'); return; }
+
+  const targetKey = monthKey(dateObj);
+  const md = ensureMonth(targetKey);
+  md.payments.push({ amount, date: dateVal, merchant });
+  saveData();
+
+  viewMonth = targetKey;
+  paymentModal.classList.remove('active');
+  renderDashboard();
+  renderPurchaseHistory();
+});
+
+/* ---- Payment History modal (opened from Current Purchase page) ---- */
+const historyModal = document.getElementById('historyModal');
+const paymentHistoryList = document.getElementById('paymentHistoryList');
+
+document.getElementById('viewPaymentHistoryBtn').addEventListener('click', ()=>{
+  const md = ensureMonth(viewMonth);
+  if(!md.payments.length){
+    paymentHistoryList.innerHTML = '<p class="empty-note">No payments yet for this month.</p>';
+  } else {
+    paymentHistoryList.innerHTML = md.payments.slice().reverse().map(p =>
+      `<div class="history-item"><div>${formatDate(p.date)} · ${escapeHtml(p.merchant||'—')}</div><div>₹${(parseFloat(p.amount)||0).toLocaleString()}</div></div>`
+    ).join('');
+  }
+  historyModal.classList.add('active');
+});
+document.getElementById('closeHistoryBtn').addEventListener('click', ()=> historyModal.classList.remove('active'));
+historyModal.addEventListener('click', (e)=>{ if(e.target===historyModal) historyModal.classList.remove('active'); });
+
+/* =========================================================
+   CURRENT PURCHASE (draft editor + auto history below)
+   ========================================================= */
+const historyContainer = document.getElementById('historyContainer');
+const pMerchantSelect = document.getElementById('pMerchantSelect');
+const pDate = document.getElementById('pDate');
+const cartRows = document.getElementById('cartRows');
+const cartTotalDisplay = document.getElementById('cartTotalDisplay');
+
+function cartRowHtml(item){
+  item = item || { name:'', qty:'', unit:'kg', price:'' };
+  return `
+    <div class="cart-row">
+      <input type="text" class="cart-name" placeholder="Item name" value="${escapeHtml(item.name||'')}">
+      <div class="cart-row-details">
+        <input type="text" class="cart-qty" placeholder="Qty" value="${escapeHtml(item.qty||'')}">
+        <select class="cart-unit">
+          <option value="kg" ${item.unit==='kg'?'selected':''}>kg</option>
+          <option value="L" ${item.unit==='L'?'selected':''}>L</option>
+          <option value="pcs" ${item.unit==='pcs'?'selected':''}>pcs</option>
+          <option value="packet" ${item.unit==='packet'?'selected':''}>packet</option>
+        </select>
+        <input type="number" class="cart-price" placeholder="₹ price" min="0" value="${item.price || ''}">
+        <button type="button" class="cart-remove" data-remove title="Remove">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function recalcCartTotal(){
+  const prices = Array.from(cartRows.querySelectorAll('.cart-price')).map(i => parseFloat(i.value) || 0);
+  const sum = prices.reduce((a,b) => a+b, 0);
+  cartTotalDisplay.textContent = '₹' + Math.round(sum).toLocaleString();
+  return sum;
+}
+
+function readDraftFromDOM(){
+  return {
+    merchant: (pMerchantSelect.value === '__new__') ? '' : pMerchantSelect.value,
+    date: pDate.value,
+    items: Array.from(cartRows.querySelectorAll('.cart-row')).map(row => ({
+      name: row.querySelector('.cart-name').value.trim(),
+      qty: row.querySelector('.cart-qty').value.trim(),
+      unit: row.querySelector('.cart-unit').value,
+      price: row.querySelector('.cart-price').value
+    }))
+  };
+}
+
+function persistDraft(){
+  data.draft = readDraftFromDOM();
+  saveData();
+}
+
+function defaultDraftDate(){
+  return (viewMonth === monthKey(new Date())) ? new Date().toISOString().slice(0,10) : viewMonth + '-01';
+}
+
+function hydrateDraftToDOM(){
+  populateMerchantSelect(pMerchantSelect, data.draft.merchant);
+  pDate.value = data.draft.date || defaultDraftDate();
+  const items = (data.draft.items && data.draft.items.length) ? data.draft.items : [null];
+  cartRows.innerHTML = items.map(cartRowHtml).join('');
+  recalcCartTotal();
+}
+
+pMerchantSelect.addEventListener('change', ()=>{
+  if(pMerchantSelect.value === '__new__'){
+    populateMerchantSelect(pMerchantSelect, data.merchants[0] || '');
+    showTextPrompt('New Merchant', 'e.g. Sharma Kirana', (name)=>{
+      if(name){
+        addMerchant(name);
+        populateMerchantSelect(pMerchantSelect, name);
+      }
+      persistDraft();
+    });
+    return;
+  }
+  persistDraft();
+});
+pDate.addEventListener('change', persistDraft);
+
+document.getElementById('cartAddRowBtn').addEventListener('click', ()=>{
+  cartRows.insertAdjacentHTML('beforeend', cartRowHtml());
+  persistDraft();
+});
+cartRows.addEventListener('input', ()=>{ recalcCartTotal(); persistDraft(); });
+cartRows.addEventListener('click', (e)=>{
+  if(e.target.closest('[data-remove]')){
+    e.target.closest('.cart-row').remove();
+    recalcCartTotal();
+    persistDraft();
+  }
+});
+
+document.getElementById('clearDraftBtn').addEventListener('click', ()=>{
+  showConfirm('Clear the current purchase draft?', ()=>{
+    data.draft = { merchant:'', date:'', items:[] };
+    saveData();
+    hydrateDraftToDOM();
+  });
+});
+
+document.getElementById('savePurchaseBtn').addEventListener('click', ()=>{
+  const merchant = pMerchantSelect.value;
+  if(!merchant || merchant === '__new__'){ showToast('Please select a merchant.'); return; }
+  const dateVal = pDate.value;
+  if(!dateVal){ showToast('Please select a date.'); return; }
+
+  const items = Array.from(cartRows.querySelectorAll('.cart-row')).map(row => ({
+    name: row.querySelector('.cart-name').value.trim(),
+    qty: row.querySelector('.cart-qty').value.trim(),
+    unit: row.querySelector('.cart-unit').value,
+    price: parseFloat(row.querySelector('.cart-price').value) || 0
+  })).filter(it => it.name);
+
+  if(items.length === 0){ showToast('Add at least one item.'); return; }
+
+  const total = items.reduce((s,i)=> s+i.price, 0);
+  const targetKey = monthKey(new Date(dateVal));
+  const targetMonth = ensureMonth(targetKey);
+  targetMonth.purchases.push({ id: genId(), merchant, date: dateVal, items, total });
+  targetMonth.purchases.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  addMerchant(merchant);
+  data.draft = { merchant:'', date:'', items:[] };
+  saveData();
+
+  viewMonth = targetKey;
+  hydrateDraftToDOM();
+  renderPurchaseHistory();
+  renderDashboard();
+});
+
+function renderPurchaseHistory(){
+  const md = ensureMonth(viewMonth);
+  document.getElementById('purchaseMonthLabel').textContent = monthLabel(viewMonth);
+
+  if(!md.purchases.length){
+    historyContainer.innerHTML = '<p class="empty-note">No purchases recorded for this month.</p>';
+    return;
+  }
+
+  historyContainer.innerHTML = md.purchases.map(group => {
+    const paid = purchasePaidAmount(md, group);
+    const remaining = (parseFloat(group.total)||0) - paid;
+    return `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2>${escapeHtml(group.merchant)}</h2>
+          <span>${formatDate(group.date)}</span>
+        </div>
+        <div class="card-header-actions">
+          <button class="action-btn" data-action="edit-purchase" data-id="${group.id}">Edit</button>
+          <button class="action-btn delete" data-action="delete-purchase" data-id="${group.id}">Delete</button>
+        </div>
+      </div>
+      <div class="item-list">
+        ${group.items.map(item => `
+          <div class="item">
+            <div class="item-name">${escapeHtml(item.name)}</div>
+            <div class="item-qty">${escapeHtml(item.qty)} ${escapeHtml(item.unit)}${item.price ? ' · ₹'+(parseFloat(item.price)||0).toLocaleString() : ''}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="purchase-stats-row">
+        <div><span>Total</span><strong>₹${(parseFloat(group.total)||0).toLocaleString()}</strong></div>
+        <div><span>Paid</span><strong>₹${paid.toLocaleString()}</strong></div>
+        <div><span>Remaining</span><strong class="${remaining>0.5?'due':'clear'}">₹${Math.max(0,Math.round(remaining)).toLocaleString()}</strong></div>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+historyContainer.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  if(btn.dataset.action === 'edit-purchase') editPurchase(id);
+  if(btn.dataset.action === 'delete-purchase') deletePurchase(id);
+});
+
+function editPurchase(id){
+  const md = ensureMonth(viewMonth);
+  const idx = md.purchases.findIndex(p => p.id === id);
+  if(idx < 0) return;
+  const group = md.purchases[idx];
+  md.purchases.splice(idx, 1);
+  data.draft = { merchant: group.merchant, date: group.date, items: group.items.map(it => ({...it})) };
+  saveData();
+  hydrateDraftToDOM();
+  renderPurchaseHistory();
+  renderDashboard();
+  document.querySelector('.draft-card').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function deletePurchase(id){
+  showConfirm('Delete this purchase?', ()=>{
+    const md = ensureMonth(viewMonth);
+    md.purchases = md.purchases.filter(p => p.id !== id);
+    saveData();
+    renderPurchaseHistory();
+    renderDashboard();
+  });
+}
+
+/* ---- Share Grocery List ---- */
+const sharePopup = document.getElementById('sharePopup');
+
+document.getElementById('shareListBtn').addEventListener('click', ()=>{
+  const items = readDraftFromDOM().items.filter(i => i.name);
+  if(!items.length){ showToast('Your list is empty. Add items first.'); return; }
+  sharePopup.classList.add('active');
+});
+document.getElementById('shareCancelBtn').addEventListener('click', ()=> sharePopup.classList.remove('active'));
+sharePopup.addEventListener('click', (e)=>{ if(e.target===sharePopup) sharePopup.classList.remove('active'); });
+
+function draftListLines(){
+  const items = readDraftFromDOM().items.filter(i => i.name);
+  return items.map(i => `${i.name} - ${i.qty}${i.unit}`).join('\n');
+}
+
+document.getElementById('shareWhatsappOpt').addEventListener('click', ()=>{
+  const text = 'Grocery List:\n' + draftListLines();
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  sharePopup.classList.remove('active');
+});
+
+document.getElementById('shareCopyOpt').addEventListener('click', ()=>{
+  const text = 'Grocery List:\n' + draftListLines();
+  sharePopup.classList.remove('active');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(
+      ()=> showToast('Copied to clipboard!'),
+      ()=> showTextPrompt('Copy this text manually', '', ()=>{}, text)
+    );
+  } else {
+    showTextPrompt('Copy this text manually', '', ()=>{}, text);
+  }
+});
+
+function generateListImage(items){
+  const width = 560;
+  const lineHeight = 34;
+  const height = 110 + items.length * lineHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,width,height);
+  ctx.fillStyle = '#512DA8';
+  ctx.font = 'bold 26px Arial';
+  ctx.fillText('Grocery List', 24, 46);
+  ctx.strokeStyle = '#E7E7EA';
+  ctx.beginPath(); ctx.moveTo(24,66); ctx.lineTo(width-24,66); ctx.stroke();
+  ctx.fillStyle = '#222';
+  ctx.font = '20px Arial';
+  items.forEach((it,i)=>{
+    ctx.fillText(`${it.name} - ${it.qty}${it.unit}`, 24, 104 + i*lineHeight);
+  });
+  return canvas.toDataURL('image/png');
+}
+
+document.getElementById('shareImageOpt').addEventListener('click', ()=>{
+  const items = readDraftFromDOM().items.filter(i => i.name);
+  const dataUrl = generateListImage(items);
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'grocery-list.png';
+  a.click();
+  sharePopup.classList.remove('active');
+});
+
+/* =========================================================
+   MERCHANTS
+   ========================================================= */
+const merchantsList = document.getElementById('merchantsList');
+
+function renderMerchants(){
+  if(!data.merchants.length){
+    merchantsList.innerHTML = '<p class="empty-note">No merchants yet. Add your regular grocery shops.</p>';
+    return;
+  }
+  const monthKeys = getSortedMonthKeys().slice().reverse();
+  merchantsList.innerHTML = data.merchants.map((m, idx) => {
+    const rows = monthKeys.map(k => {
+      const md = data.months[k];
+      const total = md.purchases
+        .filter(p => p.merchant.toLowerCase() === m.toLowerCase())
+        .reduce((s,p) => s + (parseFloat(p.total)||0), 0);
+      return total > 0 ? { key:k, total } : null;
+    }).filter(Boolean);
+
+    return `
+      <div class="card">
+        <div class="card-header">
+          <h2>${escapeHtml(m)}</h2>
+          <button class="action-btn delete" data-action="delete-merchant" data-index="${idx}">Remove</button>
+        </div>
+        ${rows.length ? rows.map(r => `
+          <div class="item">
+            <div class="item-name">${monthLabel(r.key)}</div>
+            <div class="item-qty">₹${Math.round(r.total).toLocaleString()}</div>
+          </div>
+        `).join('') : '<p class="empty-note">No purchases yet.</p>'}
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('addMerchantBtn').addEventListener('click', ()=>{
+  showTextPrompt('New Merchant', 'e.g. Sharma Kirana', (name)=>{
+    if(name){
+      addMerchant(name);
+      renderMerchants();
+    }
+  });
+});
+
+merchantsList.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-action="delete-merchant"]');
+  if(!btn) return;
+  const idx = Number(btn.dataset.index);
+  showConfirm('Remove this merchant from your list? (past purchase history stays)', ()=>{
+    data.merchants.splice(idx, 1);
+    saveData();
+    renderMerchants();
+  });
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderDashboard();
+renderPurchaseHistory();
+hydrateDraftToDOM();
+renderMerchants();
+</script>
+
+</body>
+</html>
